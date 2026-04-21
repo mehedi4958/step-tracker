@@ -114,6 +114,10 @@ class _StepTrackerState extends State<StepTracker> {
         _saveTodaysSteps();
       }
     });
+
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -124,6 +128,66 @@ class _StepTrackerState extends State<StepTracker> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Step Tracker'),
+        actions: [
+          IconButton(
+            onPressed: _resetTodaysSteps,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      body: _buildTodaysScreen(),
+    );
+  }
+
+  Widget _buildTodaysScreen() {
+    double progress = _stepCount / _dailyGoal;
+    if (progress > 1.0) progress = 1.0;
+    return Padding(
+      padding: .all(16.0),
+      child: Column(
+        mainAxisAlignment: .center,
+        children: [
+          Text(
+            'Steps Today ($_dateToday)',
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: .bold,
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          Text(
+            '$_stepCount / $_dailyGoal',
+            style: const TextStyle(fontSize: 20),
+          ),
+
+          const SizedBox(height: 20),
+
+          LinearProgressIndicator(
+            value: progress,
+            minHeight: 20,
+            backgroundColor: Colors.grey,
+            color: Colors.greenAccent,
+          ),
+
+          const SizedBox(height: 40),
+
+          ElevatedButton(
+            onPressed: _accelerometerSubscription == null
+                ? _startListening
+                : null,
+            child: Text(
+              _accelerometerSubscription == null
+                  ? 'Start Tracking'
+                  : 'Tracking...',
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
