@@ -60,7 +60,9 @@ class _StepTrackerState extends State<StepTracker> {
   void initState() {
     super.initState();
     _dateToday = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    print('/////////// Today: $_dateToday');
     _loadTodaysSteps();
+    _startListening();
   }
 
   Future<void> _loadTodaysSteps() async {
@@ -68,6 +70,7 @@ class _StepTrackerState extends State<StepTracker> {
     if (!mounted) return;
     setState(() {
       _stepCount = prefs.getInt(_dateToday) ?? 0;
+      print('******* Step Count: $_stepCount');
     });
   }
 
@@ -88,6 +91,7 @@ class _StepTrackerState extends State<StepTracker> {
   void _startListening() {
     const gravity = 9.81;
     _accelerometerSubscription = accelerometerEventStream().listen((onData) {
+      print('%%%%%%%%% ${onData.x}, ${onData.y}, ${onData.z}');
       double accelerationMagnitude = sqrt(
         onData.x * onData.x + onData.y * onData.y + onData.z * onData.z,
       );
@@ -143,47 +147,122 @@ class _StepTrackerState extends State<StepTracker> {
   }
 
   Widget _buildTodaysScreen() {
-    double progress = _stepCount / _dailyGoal;
-    if (progress > 1.0) progress = 1.0;
+    double progress = (_stepCount / _dailyGoal).clamp(0.0, 1.0);
+    double distance = _stepCount * 0.8 / 1000;
+    double calories = _stepCount * 0.04;
+
     return Padding(
-      padding: .all(16.0),
+      padding: .all(20.0),
       child: Column(
         mainAxisAlignment: .center,
         children: [
-          Text(
-            'Steps Today ($_dateToday)',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: .bold,
+          // Text(
+          //   'Steps Today ($_dateToday)',
+          //   style: const TextStyle(
+          //     fontSize: 24,
+          //     fontWeight: .bold,
+          //   ),
+          // ),
+
+          // const SizedBox(height: 20),
+          //
+          // Text(
+          //   '$_stepCount / $_dailyGoal',
+          //   style: const TextStyle(fontSize: 20),
+          // ),
+
+          // const SizedBox(height: 20),
+          SizedBox(
+            height: 220,
+            width: 220,
+            child: Stack(
+              alignment: .center,
+              children: [
+                SizedBox(
+                  height: 200,
+                  width: 200,
+                  child: CircularProgressIndicator(
+                    value: progress,
+                    strokeWidth: 12,
+                    backgroundColor: Colors.grey.shade800,
+                    color: Colors.greenAccent,
+                  ),
+                ),
+                Column(
+                  mainAxisAlignment: .center,
+                  children: [
+                    Text(
+                      '$_stepCount',
+                      style: const TextStyle(
+                        fontSize: 42,
+                        fontWeight: .bold,
+                      ),
+                    ),
+                    const Text('Steps Today'),
+                  ],
+                ),
+              ],
             ),
-          ),
-
-          const SizedBox(height: 20),
-
-          Text(
-            '$_stepCount / $_dailyGoal',
-            style: const TextStyle(fontSize: 20),
-          ),
-
-          const SizedBox(height: 20),
-
-          LinearProgressIndicator(
-            value: progress,
-            minHeight: 20,
-            backgroundColor: Colors.grey,
-            color: Colors.greenAccent,
           ),
 
           const SizedBox(height: 40),
 
-          ElevatedButton(
-            onPressed: _accelerometerSubscription == null
-                ? _startListening
-                : null,
-            child: Text(
-              _accelerometerSubscription == null
-                  ? 'Start Tracking'
-                  : 'Tracking...',
+          Row(
+            mainAxisAlignment: .spaceEvenly,
+            children: [
+              _infoCard('Goal', '$_dailyGoal'),
+              _infoCard('Distance', '${distance.toStringAsFixed(2)} km'),
+              _infoCard('Calories', '${calories.toStringAsFixed(2)} kCal'),
+            ],
+          ),
+
+          // ElevatedButton(
+          //   onPressed: _accelerometerSubscription == null
+          //       ? _startListening
+          //       : null,
+          //   child: Text(
+          //     _accelerometerSubscription == null
+          //         ? 'Start Tracking'
+          //         : 'Tracking...',
+          //   ),
+          // ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoCard(String label, String value) {
+    return Container(
+      padding: .all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade900,
+        borderRadius: .circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.4),
+            blurRadius: 6,
+            offset: const Offset(2, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: .bold,
+              color: Colors.greenAccent,
+            ),
+          ),
+
+          const SizedBox(height: 4),
+
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.white70,
             ),
           ),
         ],
