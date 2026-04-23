@@ -60,7 +60,6 @@ class _StepTrackerState extends State<StepTracker> {
   void initState() {
     super.initState();
     _dateToday = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    print('/////////// Today: $_dateToday');
     _loadTodaysSteps();
     _startListening();
   }
@@ -70,7 +69,6 @@ class _StepTrackerState extends State<StepTracker> {
     if (!mounted) return;
     setState(() {
       _stepCount = prefs.getInt(_dateToday) ?? 0;
-      print('******* Step Count: $_stepCount');
     });
   }
 
@@ -91,7 +89,6 @@ class _StepTrackerState extends State<StepTracker> {
   void _startListening() {
     const gravity = 9.81;
     _accelerometerSubscription = accelerometerEventStream().listen((onData) {
-      print('%%%%%%%%% ${onData.x}, ${onData.y}, ${onData.z}');
       double accelerationMagnitude = sqrt(
         onData.x * onData.x + onData.y * onData.y + onData.z * onData.z,
       );
